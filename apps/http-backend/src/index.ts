@@ -1,25 +1,47 @@
 import express from "express";
 import  Jwt  from "jsonwebtoken";
-import { JWT_SECRET } from "@repo/backend-common/config";
+// import {JWT_SECRET} from "@repo/backend-common/config";
+// import {CreateRoomSchema, CreateUserSchema, SigninSchema} from "@repo/common/types"
+// import { prismaClient } from "@repo/db/client";
+
+const { JWT_SECRET } = require("@repo/backend-common/config");
 import { middleware } from "./middleware";
-import {CreateRoomSchema, CreateUserSchema, SigninSchema} from "@repo/common/types"
+const {CreateRoomSchema, CreateUserSchema, SigninSchema} = require("@repo/common/types")
+const { prismaClient } = require("@repo/db/client");
+
+
 
 const app = express();
 
+app.use(express.json())
 app.post("/signup",(req,res)=>{
 
-    const data= CreateUserSchema.safeParse(req.body);
-    if(!data.success) {
+    const parsedData= CreateUserSchema.safeParse(req.body);
+    if(!parsedData.success) {
         res.json({
             message:"incorrect inputs"
         })
         return; 
     }
-   
-    // db call
-    res.json({
-        userId:"123"
+  try {
+    prismaClient.user.create({
+        data: {
+         email:parsedData.data?.username,
+         password:parsedData.data?.password,
+         name:parsedData.data?.name,
+        }
+     })
+    
+     // db call
+     res.json({
+         userId:"123"
+     })
+  } catch (error) {
+    res.status(411).json({
+        message: "Email is alraedy exits",
     })
+    
+  }
 })
 
 app.post("/signin",(req,res)=>{
