@@ -14,7 +14,6 @@ model User{
   password      String  
   name          String  
   photo         String?  
-
   Room          Room[]
   chats         Chat[]
 }

@@ -5,6 +5,8 @@ const { JWT_SECRET } = require("@repo/backend-common/config");
 
 const wss = new WebSocketServer({port:8080})
 
+console.log("WebSocket server started on port 8080");
+
 wss.on("connection",function connection(ws,request) {
 
 const url= request.url;   //ws://localhost:3000?token=1234567

@@ -6,15 +6,14 @@ import  Jwt  from "jsonwebtoken";
 
 const { JWT_SECRET } = require("@repo/backend-common/config");
 import { middleware } from "./middleware";
+import { todo } from "node:test";
 const {CreateRoomSchema, CreateUserSchema, SigninSchema} = require("@repo/common/types")
 const { prismaClient } = require("@repo/db/client");
-
-
 
 const app = express();
 
 app.use(express.json())
-app.post("/signup",(req,res)=>{
+app.post("/signup",async(req,res)=>{
 
     const parsedData= CreateUserSchema.safeParse(req.body);
     if(!parsedData.success) {
@@ -24,7 +23,7 @@ app.post("/signup",(req,res)=>{
         return; 
     }
   try {
-    prismaClient.user.create({
+ const user =  await prismaClient.user.create({
         data: {
          email:parsedData.data?.username,
          password:parsedData.data?.password,
@@ -34,7 +33,7 @@ app.post("/signup",(req,res)=>{
     
      // db call
      res.json({
-         userId:"123"
+         userId:user.id
      })
   } catch (error) {
     res.status(411).json({
@@ -44,19 +43,32 @@ app.post("/signup",(req,res)=>{
   }
 })
 
-app.post("/signin",(req,res)=>{
+app.post("/signin",async(req,res)=>{
 
-    const data= SigninSchema.safeParse(req.body);
-    if(!data.success) {
+    const parsedData= SigninSchema.safeParse(req.body);
+    if(!parsedData.success) {
         res.json({
             message:"incorrect inputs"
         })
         return; 
     }
 
-    const userId=1;
+    // TODO : compare the hashed password here 
+    const user=await prismaClient.user.findFirst({
+        where:{
+            email:parsedData.data.username,
+            password:parsedData.data.password
+        }
+    })
+        if(!user){
+            res.status(403).json({
+                message:"Not Authorized"
+            })
+            return;
+        }
+
  const token=   Jwt.sign({
-        userId,
+        userId:user?.id
     },JWT_SECRET);
 
     res.json({
@@ -64,19 +76,30 @@ app.post("/signin",(req,res)=>{
     })
 })
 
-app.post("/room",middleware,(req,res)=> {
+app.post("/room",middleware,async(req,res)=> {
 
-    const data= CreateRoomSchema.safeParse(req.body);
-    if(!data.success) {
+    const parsedData= CreateRoomSchema.safeParse(req.body);
+    if(!parsedData.success) {
         res.json({
             message:"incorrect inputs"
         })
         return; 
     }
-
-    // db call
+    // @ts-ignore
+    const userId = req.userId;
+   const room=  await prismaClient.room.create({
+        data :{
+            slug:parsedData.data.name,
+            adminId:userId
+        }
+     })
+    
     res.json({
-        roomId:"123"
+        roomId:room?.id
     })
 })
-app.listen(3000);
+
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`); 
+});
