@@ -7,6 +7,7 @@ import  Jwt  from "jsonwebtoken";
 const { JWT_SECRET } = require("@repo/backend-common/config");
 import { middleware } from "./middleware";
 import { todo } from "node:test";
+import { request } from "http";
 const {CreateRoomSchema, CreateUserSchema, SigninSchema} = require("@repo/common/types")
 const { prismaClient } = require("@repo/db/client");
 
@@ -87,15 +88,51 @@ app.post("/room",middleware,async(req,res)=> {
     }
     // @ts-ignore
     const userId = req.userId;
-   const room=  await prismaClient.room.create({
-        data :{
-            slug:parsedData.data.name,
-            adminId:userId
-        }
-     })
-    
+    try{
+        const room=  await prismaClient.room.create({
+            data :{
+                slug:parsedData.data.name,
+                adminId:userId
+            }
+         })
+        
+        res.json({
+            roomId:room?.id
+        })
+    }catch(e) {
+        res.json({
+            message: "Room already exits with this name"
+        })
+    }
+  
+})
+
+app.get("/chats/:roomId",async(req,res)=>{
+    const roomId= Number(req.params.roomId);
+
+    const messages=await prismaClient.chat.findMany({
+        where:{
+            roomId: roomId
+        },
+        orderBy:{
+            id:"desc"
+        },
+        take:50 
+    });
     res.json({
-        roomId:room?.id
+        messages
+    })
+})
+
+app.get("/room/:slug",async(req,res)=>{
+    const slug= req.params.slug;
+    const room= await prismaClient.room.findFirst({
+        where:{
+            slug
+        }
+    });
+    res.json({
+        room
     })
 })
 
