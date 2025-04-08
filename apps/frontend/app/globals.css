@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+/* Add in your globals.css if needed */
+@layer utilities {
+  .glow {
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.6), 0 0 16px rgba(0, 255, 255, 0.3);
+  }
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .hover-glow:hover {
+    box-shadow: 0 0 12px rgba(0, 255, 255, 0.9);
+  }
+}
