@@ -8,8 +8,10 @@ const { JWT_SECRET } = require("@repo/backend-common/config");
 import { middleware } from "./middleware";
 const {CreateRoomSchema, CreateUserSchema, SigninSchema} = require("@repo/common/types")
 const { prismaClient } = require("@repo/db/client");
+import cors from "cors"
 
 const app = express();
+app.use(cors())
 
 app.use(express.json())
 app.post("/signup",async(req,res)=>{

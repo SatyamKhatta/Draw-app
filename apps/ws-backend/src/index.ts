@@ -58,7 +58,14 @@ if(!url){
     ws
   })
     ws.on("message",async function message(data) {
-      const ParsedData = JSON.parse(data as unknown as string);
+      let ParsedData;
+      if(typeof data !== "string") {
+        ParsedData = JSON.parse(data.toString());
+      }else{
+      ParsedData = JSON.parse(data as unknown as string);
+      }
+      
+     
     
       if (ParsedData.type === "join_room") {
         const user = users.find(x => x.ws == ws);
@@ -79,7 +86,7 @@ if(!url){
     
         await prismaClient.chat.create({
           data: {
-            roomId,
+            roomId:Number(roomId),
             message,
             userId
           }
